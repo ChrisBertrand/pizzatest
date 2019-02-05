@@ -1,4 +1,4 @@
-var fs = require("fs");
+const fs = require("fs");
 const inputFile = "./input/a_example.in";
 
 // Read data from file
