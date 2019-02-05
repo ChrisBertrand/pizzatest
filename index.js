@@ -31,3 +31,38 @@ for (var y = 0; y < rows; y++) {
 }
 
 console.log(pizza);
+
+findSlice();
+
+function findSlice() {
+
+  let numMushrooms = 0;
+  let numTomatoes = 0;
+
+  for (var y = 0; y < rows; y++) {
+    for (var x = 0; x < cols; x++) {
+
+      let ingred = pizza[x][y];
+
+      if (ingred == 'M') {
+        numMushrooms++;
+      } else if (ingred == 'T') {
+        numTomatoes++;
+      }
+
+      if (numMushrooms >= minIngredients && numTomatoes >= minIngredients) {
+        // We have a slice
+        if (x < cols - 1) {
+          // Slice is not a rectangle
+          continue;
+        }
+        console.log(x + ', ' + y + ', ' + numMushrooms + ', ' + numTomatoes)
+      }
+
+      if (numMushrooms + numTomatoes > maxCells) {
+        // panic
+      }
+
+    }
+  }
+}
