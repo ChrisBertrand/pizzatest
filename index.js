@@ -1,6 +1,5 @@
 const fs = require('fs');
- 
-fs.readFile('DATA', 'utf8', (err, contents) => {
+
+fs.readFile('input', 'ascii', (err, contents) => {
     console.log(contents);
 });
- 
