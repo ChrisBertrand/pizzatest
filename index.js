@@ -1,8 +1,12 @@
 const fs = require("fs");
 const inputFile = "./input/a_example.in";
+const inputSmall = "./input/b_small.in";
+const inputMed = "./input/c_medium.in";
+const inputBig = "./input/d_big.in";
 
 // Read data from file
 var data = fs.readFileSync(inputFile, "utf-8");
+
 var dataByLine = data.split("\n");
 
 // Establish parameters
@@ -40,12 +44,15 @@ for (var x = 0; x < rows; x++) {
     }
 }
 
-let outSlices = findSliceVertical();
-//createOutput(outSlices);
+let outSlices = [];
+outSlices = findSliceVertical();
+outSlices = findSliceHorizontal();
+
+createOutput(outSlices);
 
 function createOutput(slices) {
   console.log(slices);
-  var wstream = fs.createWriteStream('small.output');
+  var wstream = fs.createWriteStream('ez.output');
   wstream.write(slices.length + '\n');
   slices.forEach(s => wstream.write(`${s.r1} ${s.c1} ${s.r2} ${s.c2} \n`));
   wstream.end();
@@ -96,41 +103,90 @@ function findSliceVertical() {
       }
     }
   }
+  cellHistory = [];
+  return slices;
+}
+
+function findSliceHorizontal() {
+
+  let numMushrooms = 0;
+  let numTomatoes = 0;
+  var startedSlice = false;
+  let s = new slice();
+
+  for (var row = 0; row < rows; row++) {
+    for (var col = 0; col < cols; col++) {
+
+      let ingred = pizza[row][col];
+
+      console.log('ingred:', ingred);
+
+      if (ingred == 'M' || ingred == 'T') {
+        cellHistory.push({ x: row, y: col });
+
+        if (startedSlice === false) {
+          s = new slice();
+          s.r1 = row; s.c1 = col;
+          startedSlice = true;
+        }
+      }
+
+      if (ingred == 'M') {
+        numMushrooms++;
+      } else if (ingred == 'T') {
+        numTomatoes++;
+      }
+
+      if (numMushrooms >= minIngredients && numTomatoes >= minIngredients) {
+        // We potentially have a slice
+        s.r2 = row;
+        s.c2 = col;
+
+        if (isSquare(cellHistory)) {
+          if (cellHistory.length <= maxCells) {
+            slices.push(s);
+            fillPizza(cellHistory, slices.length);
+            startedSlice = false;
+            cellHistory = [];
+            numMushrooms = 0; numTomatoes = 0;
+          }
+        }
+      }
+    }
+  }
+  cellHistory = [];
   return slices;
 }
 
 function isSquare(ch) {
-  var cells = ch;
-  var lastCell = cells.pop();
-  var maxX = 0, maxY = 0, minX = lastCell.x, minY = lastCell.y;
-  var r = 0,c = 0;
+  var minRow = Math.min(...ch.map(a => a.x));
+  var maxRow = Math.max(...ch.map(a => a.x));
+  var minCol = Math.min(...ch.map(a => a.y));
+  var maxCol = Math.max(...ch.map(a => a.y));
 
-  ch.forEach(pc => {
-    if (pc.x < minX) { minX = pc.x; }
-    if (pc.y < minY) { minY = pc.y; }
-    if (pc.x > maxX) { maxX = pc.x; }
-    if (pc.y > maxY) { maxY = pc.y; }
-  });
+  //console.log(`Vals: minx:${minRow}, maxx:${maxRow}, minC:${minCol}, maxC:${maxCol}`);
+  var rs =  (maxRow - minRow) + 1;
+  var cs = (maxCol - minCol) + 1;
+  var cells = ch.length;
 
-  //console.log('rc',r,c);
-  //console.log('aaa', minX, maxX, minY, maxY);
-  
-  if (lastCell.x === maxX && lastCell.y === maxY)
-  {
-    console.log('true');
+  //console.log(`rows: ${rs} cols:${cs} cells:${cells}`);
+
+  if (rs == 0 || cs == 0) return true;
+
+  if (cells == (rs * cs)) {
     return true;
   }
   return false;
 }
 
 function fillPizza(ch, i) {
-  console.log('i', i);
+  //console.log('Cut: ', i);
   ch.forEach(pc => {
     pizza[pc.x][pc.y] = i;
   });
-  printPizza();
+  //printPizza();
 }
 
-function printPizza(){
-  console.log(pizza);
+function printPizza() {
+  pizza.forEach(p => console.log(p));
 }
