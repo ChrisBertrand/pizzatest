@@ -23,7 +23,7 @@ console.log('min', minIngredients);
 console.log('mc', maxCells);
 
 const slices = [];
-let cellHistory = [];
+
 
 class slice{
   constuctor() {
@@ -49,11 +49,12 @@ for (var x = 0; x < rows; x++) {
 let outSlices = [];
 
 outSlices = findSliceVertical();
-//outSlices = findSliceHorizontal();
+
+
 
 console.log('score: 1 ', score);
 
-//outSlices = findSliceHorizontal();
+outSlices = findSliceHorizontal();
 createOutput(outSlices);
 console.log('final score:', score , 'out of :', total, 'pc: ', score/total);
 printPizza();
@@ -67,11 +68,13 @@ function createOutput(slices) {
 }
 
 function findSliceVertical() {
+  console.log('do vertical');
   let numMushrooms = 0;
   let numTomatoes = 0;
   var startedSlice = false;
   let s = new slice();
   var validCellHistory =[];
+  let cellHistory = [];
 
   for (var col = 0; col < cols; col++) {
     for (var row = 0; row < rows; row++) {
@@ -87,7 +90,64 @@ function findSliceVertical() {
           s.r1 = row; s.c1 = col;
           startedSlice = true;
         }
-      }else{break;}
+      }else{cellHistory = []; break;}
+
+      if (ingred == 'M') {
+        numMushrooms++;
+      } else if (ingred == 'T') {
+        numTomatoes++;
+      }
+
+      if (numMushrooms >= minIngredients && numTomatoes >= minIngredients) {
+        // We potentially have a slice
+        s.r2 = row;
+        s.c2 = col;
+        
+          if (isSquare(cellHistory)) {
+            if (cellHistory.length < maxCells){
+              validCellHistory = cellHistory;
+              console.log('1', cellHistory);
+              continue;
+            } 
+            ({ startedSlice, numMushrooms, numTomatoes, cellHistory, sliceNum } = addSlice(s, cellHistory, startedSlice, numMushrooms, numTomatoes, sliceNum));
+          }
+          else if(validCellHistory != null && isSquare(validCellHistory)) {
+            ({ startedSlice, numMushrooms, numTomatoes, validCellHistory, sliceNum } = addSlice(s, validCellHistory, startedSlice, numMushrooms, numTomatoes, sliceNum));
+            if (validCellHistory == null) {cellHistory = []}
+          }
+        }
+      }
+    }
+  return slices;
+}
+
+function findSliceHorizontal() {
+
+  console.log('do horizontal');
+  let numMushrooms = 0;
+  let numTomatoes = 0;
+  var startedSlice = false;
+  let s = new slice();
+  let cellHistory = [];
+  var validCellHistory =[];
+
+  for (var row = 0; row < rows; row++) {
+    for (var col = 0; col < cols; col++) {
+
+      let ingred = pizza[row][col];
+
+      console.log('where', ingred , row, col, validCellHistory);
+
+      if (ingred == 'M' || ingred == 'T') {
+        if (cellHistory == undefined){cellHistory = [];}
+        cellHistory.push({ x: row, y: col });
+
+        if (startedSlice === false) {
+          s = new slice();
+          s.r1 = row; s.c1 = col;
+          startedSlice = true;
+        }
+      }else{ cellHistory = [];}
 
       if (ingred == 'M') {
         numMushrooms++;
@@ -107,65 +167,13 @@ function findSliceVertical() {
             continue;
           } 
           ({ startedSlice, numMushrooms, numTomatoes, cellHistory, sliceNum } = addSlice(s, cellHistory, startedSlice, numMushrooms, numTomatoes, sliceNum));
+          validCellHistory = [];
         }
-        else if(validCellHistory != null && isSquare(validCellHistory)) {
+        else if(validCellHistory != undefined && isSquare(validCellHistory)) {
           ({ startedSlice, numMushrooms, numTomatoes, validCellHistory, sliceNum } = addSlice(s, validCellHistory, startedSlice, numMushrooms, numTomatoes, sliceNum));
           if (validCellHistory == null) {cellHistory = []}
         }
         }
-      }
-    }
-  return slices;
-}
-
-function findSliceHorizontal() {
-
-  let numMushrooms = 0;
-  let numTomatoes = 0;
-  var startedSlice = false;
-  let s = new slice();
-
-  for (var row = 0; row < rows; row++) {
-    for (var col = 0; col < cols; col++) {
-
-      let ingred = pizza[row][col];
-
-      if (ingred == 'M' || ingred == 'T') {
-        if (cellHistory == undefined){cellHistory = [];}
-        cellHistory.push({ x: row, y: col });
-
-        if (startedSlice === false) {
-          s = new slice();
-          s.r1 = row; s.c1 = col;
-          startedSlice = true;
-        }
-      } else{break;}
-
-      if (ingred == 'M') {
-        numMushrooms++;
-      } else if (ingred == 'T') {
-        numTomatoes++;
-      }
-
-      if (numMushrooms >= minIngredients && numTomatoes >= minIngredients) {
-        // We potentially have a slice
-        s.r2 = row;
-        s.c2 = col;
-        var validCellHistory = [];
-
-        if (isSquare(cellHistory)) {
-          if (cellHistory.length < maxCells){
-            validCellHistory = cellHistory;
-            continue;
-          }
-          console.log('ORIG PATH');
-          ({ startedSlice, numMushrooms, numTomatoes, cellHistory, sliceNum } = addSlice(s, cellHistory, startedSlice, numMushrooms, numTomatoes));
-        }
-        else if(validCellHistory != null && cellHistory != undefined){
-          console.log('OTHER PATH');
-          ({ startedSlice, numMushrooms, numTomatoes, cellHistory, sliceNum } = addSlice(s, validCellHistory, startedSlice, numMushrooms, numTomatoes));
-        }
-      }
     }
   }
   cellHistory = [];
